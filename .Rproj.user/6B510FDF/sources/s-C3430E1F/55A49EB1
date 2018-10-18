@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1536309950931.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "55A49EB1",
+    "lastKnownWriteTime" : 1539867355,
+    "last_content_update" : 1539867355145,
+    "path" : "~/mds/app.R",
+    "project_path" : "app.R",
+    "properties" : {
+        "cursorPosition" : "739,41",
+        "scrollLine" : "726"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

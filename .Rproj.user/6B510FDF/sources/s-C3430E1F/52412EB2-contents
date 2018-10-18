@@ -1,0 +1,612 @@
+DF1 <- model1()
+DF2 <- model2()
+title1 <- "xxxxx"
+if(input$direct == T){df <- direct()}
+if(input$nominal == T) {df <- nomin()}
+if(input$distance == T){df <-distan()}
+if(input$similarity == T){df <- simil()}
+if(input$gravity == T){df <- grav()}
+res <- mds(df,ndim =as.integer(input$di), type = input$ty, ties=input$tie,  itmax = 10000,init = "torgerson")
+nr <- 20
+res0 <- icExplore(df, ndim =as.integer(input$di), type = input$ty, ties=input$tie, nrep = nr, returnfit = TRUE, itmax = 10000)
+confi <-res0$mdsfit[[input$confNo]]$conf
+res2 <- mds(df,ndim =as.integer(input$di), type = input$ty, ties=input$tie,  itmax = 10000, init = confi)
+
+
+dm <- input$dimSelect
+if(input$di == 2){
+  aa <- input$scale1
+  ac <- input$scale2
+  ad <- input$scale3
+}
+if(input$di == 3){
+  aa <- input$scale11
+  ac <- input$scale22
+  ad <- input$scale33
+  
+}
+
+if(input$mds == T){
+  if(input$finalTorgerson == T){
+    
+    if(input$external == T)
+    {
+      groups <-dd %>% na.omit() %>%dplyr::filter_(!is.na("grp"))
+      groups <-as.factor(groups$grp)
+      groups <- groups
+      cc <- data.frame(DF1)
+      tit <- "Torgerson"
+      
+      fitbi <- biplotmds(res, cbind(exx, exy,exz))
+      ab <-fitbi$coefficients
+      
+      
+      sp <-ggscatter(cc, x = "D1", y = "D2", 
+                     label = names(df), size =max(res$spp)-res$spp,alpha=.3, legend="none",
+                     repel = TRUE)+ ggtitle(tit) 
+      
+      
+      library(ggConvexHull)
+      sp <-sp+geom_convexhull(alpha = 0.2,aes(fill = groups)) 
+      
+      nn <- as.integer(dm %>% str_replace("D", ""))
+      
+      
+      rx <- round(fitbi$R2vec[1], 2)
+      ry<- round(fitbi$R2vec[nn],2) 
+      
+      if(input$externalGroups == T){
+        r1 <-paste(names(exx),aa ,"(", as.character(rx), ")"  )
+        r2<-paste(names(exy), ac, "(", as.character(ry), ")")
+        r3 <-paste(names(exz), ad, "(", as.character(ry), ")")
+        xxx <-ifelse(nn==2, r2, r3)
+        sp <-sp + geom_abline(slope = ab[nn,1]/ab[1,1], color="blue",linetype="dashed", size=1)+
+          geom_abline(slope =ab[nn,nn]/ab[1,nn], color="red",linetype="dashed", size=1) +
+          annotate("text", x=.2, y=(ab[nn,1]/ab[1,1])*.2, label = r1, color="blue",  fontface =4) + 
+          annotate("text", x=.2 , y =(ab[nn,nn])/(ab[1,nn])*.2,label = xxx,color="red",  fontface =4) +theme(legend.position = "none")
+      }
+      sp1 <- sp
+      
+      sp <-ggscatter(cc, x = "D1", y = "D3", 
+                     label = names(df), size =max(res$spp)-res$spp,alpha=.3, legend="none",
+                     repel = TRUE)+ ggtitle(tit) 
+      
+      
+      library(ggConvexHull)
+      sp <-sp+geom_convexhull(alpha = 0.2,aes(fill = groups)) 
+      
+      nn <- as.integer(dm %>% str_replace("D", ""))
+      
+      
+      rx <- round(fitbi$R2vec[1], 2)
+      ry<- round(fitbi$R2vec[nn],2) 
+      
+      if(input$externalGroups == T){
+        r1 <-paste(names(exx),aa ,"(", as.character(rx), ")"  )
+        r2<-paste(names(exy), ac, "(", as.character(ry), ")")
+        r3 <-paste(names(exz), ad, "(", as.character(ry), ")")
+        xxx <-ifelse(nn==2, r2, r3)
+        sp <-sp + geom_abline(slope = ab[nn,1]/ab[1,1], color="blue",linetype="dashed", size=1)+
+          geom_abline(slope =ab[nn,nn]/ab[1,nn], color="red",linetype="dashed", size=1) +
+          annotate("text", x=.2, y=(ab[nn,1]/ab[1,1])*.2, label = r1, color="blue",  fontface =4) + 
+          annotate("text", x=.2 , y =(ab[nn,nn])/(ab[1,nn])*.2,label = xxx,color="red",  fontface =4) +theme(legend.position = "none")
+      }
+      sp2 <- sp
+      sss <- grid.arrange(sp1, sp2, nrow = 1, top=title1)
+      
+    }
+    
+    if(input$external == F){
+      cc <- data.frame(DF1)
+      tit<-"Torgerson"
+      fitbi <- biplotmds(res, cbind(exx, exy,exz))
+      ab <-fitbi$coefficients
+      cl <- input$noOfCluster
+      
+      set.seed(123466)
+      library(cluster)
+      clust <- kmeans(df, cl)$cluster %>%
+        as.factor() # Compute fuzzy clustering with k = 2
+      #change D2 w D3
+      
+      
+      sp <-ggscatter(cc, x = "D1", y = "D2", 
+                     label = names(df), size =max(res$spp)-res$spp,alpha=.3, legend="none",
+                     repel = TRUE)+ ggtitle(tit) 
+      
+      
+      library(ggConvexHull)
+      sp <-sp+geom_convexhull(alpha = 0.2,aes(fill = clust)) 
+      
+      nn <- as.integer(dm %>% str_replace("D", ""))
+      
+      
+      rx <- round(fitbi$R2vec[1], 2);ry<- round(fitbi$R2vec[nn],2) 
+      
+      if(input$externalGroups == T){
+        r1 <-paste(names(exx),aa ,"(", as.character(rx), ")"  )
+        r2<-paste(names(exy), ac, "(", as.character(ry), ")")
+        r3 <-paste(names(exz), ad, "(", as.character(ry), ")")
+        xxx <-ifelse(nn==2, r2, r3)
+        sp <-sp + geom_abline(slope = ab[nn,1]/ab[1,1], color="blue",linetype="dashed", size=1)+
+          geom_abline(slope =ab[nn,nn]/ab[1,nn], color="red",linetype="dashed", size=1) +
+          annotate("text", x=.2, y=(ab[nn,1]/ab[1,1])*.2, label = r1, color="blue",  fontface =4) + 
+          annotate("text", x=.2 , y =(ab[nn,nn])/(ab[1,nn])*.2,label = xxx,color="red",  fontface =4) +theme(legend.position = "none")
+      }
+      sp1 <- sp
+      sp <-ggscatter(cc, x = "D1", y = "D3", 
+                     label = names(df), size =max(res$spp)-res$spp,alpha=.3, legend="none",
+                     repel = TRUE)+ ggtitle(tit) 
+      
+      
+      library(ggConvexHull)
+      sp <-sp+geom_convexhull(alpha = 0.2,aes(fill = clust)) 
+      
+      nn <- as.integer(dm %>% str_replace("D", ""))
+      
+      
+      rx <- round(fitbi$R2vec[1], 2);ry<- round(fitbi$R2vec[nn],2) 
+      
+      if(input$externalGroups == T){
+        r1 <-paste(names(exx),aa ,"(", as.character(rx), ")"  )
+        r2<-paste(names(exy), ac, "(", as.character(ry), ")")
+        r3 <-paste(names(exz), ad, "(", as.character(ry), ")")
+        xxx <-ifelse(nn==2, r2, r3)
+        sp <-sp + geom_abline(slope = ab[nn,1]/ab[1,1], color="blue",linetype="dashed", size=1)+
+          geom_abline(slope =ab[nn,nn]/ab[1,nn], color="red",linetype="dashed", size=1) +
+          annotate("text", x=.2, y=(ab[nn,1]/ab[1,1])*.2, label = r1, color="blue",  fontface =4) + 
+          annotate("text", x=.2 , y =(ab[nn,nn])/(ab[1,nn])*.2,label = xxx,color="red",  fontface =4) +theme(legend.position = "none")
+      }
+      sp2 <- sp
+      sss <- grid.arrange(sp1, sp2, nrow = 1, top=title1)
+    }
+    
+  }
+  
+  
+  if(input$finalRandom == T){
+    if(input$external == T)
+    {
+      groups <-dd %>% na.omit() %>%dplyr::filter_(!is.na("grp"))
+      groups <-as.factor(groups$grp)
+      groups <- groups
+      cc <- data.frame(DF2)
+      tit <- "Random"
+      
+      fitbi <- biplotmds(res2, cbind(exx, exy,exz))
+      ab <-fitbi$coefficients
+      
+      
+      sp <-ggscatter(cc, x = "D1", y = "D2", 
+                     label = names(df), size =max(res$spp)-res$spp,alpha=.3, legend="none",
+                     repel = TRUE)+ ggtitle(tit) 
+      
+      
+      library(ggConvexHull)
+      sp <-sp+geom_convexhull(alpha = 0.2,aes(fill = groups)) 
+      
+      nn <- as.integer(dm %>% str_replace("D", ""))
+      
+      
+      rx <- round(fitbi$R2vec[1], 2)
+      ry<- round(fitbi$R2vec[nn],2) 
+      
+      if(input$externalGroups == T){
+        r1 <-paste(names(exx),aa ,"(", as.character(rx), ")"  )
+        r2<-paste(names(exy), ac, "(", as.character(ry), ")")
+        r3 <-paste(names(exz), ad, "(", as.character(ry), ")")
+        xxx <-ifelse(nn==2, r2, r3)
+        sp <-sp + geom_abline(slope = ab[nn,1]/ab[1,1], color="blue",linetype="dashed", size=1)+
+          geom_abline(slope =ab[nn,nn]/ab[1,nn], color="red",linetype="dashed", size=1) +
+          annotate("text", x=.2, y=(ab[nn,1]/ab[1,1])*.2, label = r1, color="blue",  fontface =4) + 
+          annotate("text", x=.2 , y =(ab[nn,nn])/(ab[1,nn])*.2,label = xxx,color="red",  fontface =4) +theme(legend.position = "none")
+      }
+      sp1 <- sp
+      
+      sp <-ggscatter(cc, x = "D1", y = "D3", 
+                     label = names(df), size =max(res$spp)-res$spp,alpha=.3, legend="none",
+                     repel = TRUE)+ ggtitle(tit) 
+      
+      
+      library(ggConvexHull)
+      sp <-sp+geom_convexhull(alpha = 0.2,aes(fill = groups)) 
+      
+      nn <- as.integer(dm %>% str_replace("D", ""))
+      
+      
+      rx <- round(fitbi$R2vec[1], 2)
+      ry<- round(fitbi$R2vec[nn],2) 
+      
+      if(input$externalGroups == T){
+        r1 <-paste(names(exx),aa ,"(", as.character(rx), ")"  )
+        r2<-paste(names(exy), ac, "(", as.character(ry), ")")
+        r3 <-paste(names(exz), ad, "(", as.character(ry), ")")
+        xxx <-ifelse(nn==2, r2, r3)
+        sp <-sp + geom_abline(slope = ab[nn,1]/ab[1,1], color="blue",linetype="dashed", size=1)+
+          geom_abline(slope =ab[nn,nn]/ab[1,nn], color="red",linetype="dashed", size=1) +
+          annotate("text", x=.2, y=(ab[nn,1]/ab[1,1])*.2, label = r1, color="blue",  fontface =4) + 
+          annotate("text", x=.2 , y =(ab[nn,nn])/(ab[1,nn])*.2,label = xxx,color="red",  fontface =4) +theme(legend.position = "none")
+      }
+      sp2 <- sp
+      sss <- grid.arrange(sp1, sp2, nrow = 1, top="tit")
+      
+    }
+    
+    if(input$external == F){
+      cc <- data.frame(DF2)
+      tit<-"Random"
+      fitbi <- biplotmds(res2, cbind(exx, exy,exz))
+      ab <-fitbi$coefficients
+      cl <- input$noOfCluster
+      
+      set.seed(123466)
+      library(cluster)
+      clust <- kmeans(df, cl)$cluster %>%
+        as.factor() # Compute fuzzy clustering with k = 2
+      #change D2 w D3
+      
+      
+      sp <-ggscatter(cc, x = "D1", y = "D2", 
+                     label = names(df), size =max(res$spp)-res$spp,alpha=.3, legend="none",
+                     repel = TRUE)+ ggtitle(tit) 
+      
+      
+      library(ggConvexHull)
+      sp <-sp+geom_convexhull(alpha = 0.2,aes(fill = clust)) 
+      
+      nn <- as.integer(dm %>% str_replace("D", ""))
+      
+      
+      rx <- round(fitbi$R2vec[1], 2);ry<- round(fitbi$R2vec[nn],2) 
+      
+      if(input$externalGroups == T){
+        r1 <-paste(names(exx),aa ,"(", as.character(rx), ")"  )
+        r2<-paste(names(exy), ac, "(", as.character(ry), ")")
+        r3 <-paste(names(exz), ad, "(", as.character(ry), ")")
+        xxx <-ifelse(nn==2, r2, r3)
+        sp <-sp + geom_abline(slope = ab[nn,1]/ab[1,1], color="blue",linetype="dashed", size=1)+
+          geom_abline(slope =ab[nn,nn]/ab[1,nn], color="red",linetype="dashed", size=1) +
+          annotate("text", x=.2, y=(ab[nn,1]/ab[1,1])*.2, label = r1, color="blue",  fontface =4) + 
+          annotate("text", x=.2 , y =(ab[nn,nn])/(ab[1,nn])*.2,label = xxx,color="red",  fontface =4) +theme(legend.position = "none")
+      }
+      sp1 <- sp
+      
+      sp <-ggscatter(cc, x = "D1", y = "D3", 
+                     label = names(df), size =max(res$spp)-res$spp,alpha=.3, legend="none",
+                     repel = TRUE)+ ggtitle(tit) 
+      
+      
+      library(ggConvexHull)
+      sp <-sp+geom_convexhull(alpha = 0.2,aes(fill = clust)) 
+      
+      nn <- as.integer(dm %>% str_replace("D", ""))
+      
+      
+      rx <- round(fitbi$R2vec[1], 2);ry<- round(fitbi$R2vec[nn],2) 
+      
+      if(input$externalGroups == T){
+        r1 <-paste(names(exx),aa ,"(", as.character(rx), ")"  )
+        r2<-paste(names(exy), ac, "(", as.character(ry), ")")
+        r3 <-paste(names(exz), ad, "(", as.character(ry), ")")
+        xxx <-ifelse(nn==2, r2, r3)
+        sp <-sp + geom_abline(slope = ab[nn,1]/ab[1,1], color="blue",linetype="dashed", size=1)+
+          geom_abline(slope =ab[nn,nn]/ab[1,nn], color="red",linetype="dashed", size=1) +
+          annotate("text", x=.2, y=(ab[nn,1]/ab[1,1])*.2, label = r1, color="blue",  fontface =4) + 
+          annotate("text", x=.2 , y =(ab[nn,nn])/(ab[1,nn])*.2,label = xxx,color="red",  fontface =4) +theme(legend.position = "none")
+      }
+      sp1 <- sp
+      sss <- grid.arrange(sp1, sp2, nrow = 1, top="tit")
+    }
+    
+  }
+}
+if(input$idioscal == T || input$indscal == T){
+  if(input$finalTorgerson == T){
+    
+    if(input$external == T)
+    {
+      groups <-dd %>% na.omit() %>%dplyr::filter_(!is.na("grp"))
+      groups <-as.factor(groups$grp)
+      groups <- groups
+      cc <- data.frame(DF1)
+      tit <- "Torgerson"
+      
+      fitbi <- biplotmds(res, cbind(exx, exy,exz))
+      ab <-fitbi$coefficients
+      
+      
+      sp <-ggscatter(cc, x = "D1", y = "D2", 
+                     label = names(df), size =max(res$spp)-res$spp,alpha=.3, legend="none",
+                     repel = TRUE)+ ggtitle(tit) 
+      
+      
+      library(ggConvexHull)
+      sp <-sp+geom_convexhull(alpha = 0.2,aes(fill = groups)) 
+      
+      nn <- as.integer(dm %>% str_replace("D", ""))
+      
+      
+      rx <- round(fitbi$R2vec[1], 2)
+      ry<- round(fitbi$R2vec[nn],2) 
+      
+      if(input$externalGroups == T){
+        r1 <-paste(names(exx),aa ,"(", as.character(rx), ")"  )
+        r2<-paste(names(exy), ac, "(", as.character(ry), ")")
+        r3 <-paste(names(exz), ad, "(", as.character(ry), ")")
+        xxx <-ifelse(nn==2, r2, r3)
+        sp <-sp + geom_abline(slope = ab[nn,1]/ab[1,1], color="blue",linetype="dashed", size=1)+
+          geom_abline(slope =ab[nn,nn]/ab[1,nn], color="red",linetype="dashed", size=1) +
+          annotate("text", x=.2, y=(ab[nn,1]/ab[1,1])*.2, label = r1, color="blue",  fontface =4) + 
+          annotate("text", x=.2 , y =(ab[nn,nn])/(ab[1,nn])*.2,label = xxx,color="red",  fontface =4) +theme(legend.position = "none")
+      }
+      
+      sp <-ggscatter(cc, x = "D1", y = "D3", 
+                     label = names(df), size =max(res$spp)-res$spp,alpha=.3, legend="none",
+                     repel = TRUE)+ ggtitle(tit) 
+      
+      
+      library(ggConvexHull)
+      sp <-sp+geom_convexhull(alpha = 0.2,aes(fill = clust)) 
+      
+      nn <- as.integer("D3" %>% str_replace("D", ""))
+      
+      
+      rx <- round(fitbi$R2vec[1], 2);ry<- round(fitbi$R2vec[nn],2) 
+      
+      if(input$externalGroups == T){
+        r1 <-paste(names(exx),aa ,"(", as.character(rx), ")"  )
+        r2<-paste(names(exy), ac, "(", as.character(ry), ")")
+        r3 <-paste(names(exz), ad, "(", as.character(ry), ")")
+        xxx <-ifelse(nn==2, r2, r3)
+        sp <-sp + geom_abline(slope = ab[nn,1]/ab[1,1], color="blue",linetype="dashed", size=1)+
+          geom_abline(slope =ab[nn,nn]/ab[1,nn], color="red",linetype="dashed", size=1) +
+          annotate("text", x=.2, y=(ab[nn,1]/ab[1,1])*.2, label = r1, color="blue",  fontface =4) + 
+          annotate("text", x=.2 , y =(ab[nn,nn])/(ab[1,nn])*.2,label = xxx,color="red",  fontface =4) +theme(legend.position = "none")
+      }
+      
+      sp2 <- sp
+      p1 <-ggplot(W, aes(X1, X2)) +
+        geom_label_repel(label=levels(dd$subject), size=5)
+      p2 <-ggplot(W, aes(X1, X3)) +
+        geom_label_repel(label=levels(dd$subject), size=5)
+      sss <- grid.arrange(sp1, sp2, p1, p2, nrow = 2, top=title1)
+    }
+    
+    if(input$external == F){
+      cc <- data.frame(DF1)
+      tit<-"Torgerson"
+      fitbi <- biplotmds(res, cbind(exx, exy,exz))
+      ab <-fitbi$coefficients
+      cl <- input$noOfCluster
+      
+      set.seed(123466)
+      library(cluster)
+      clust <- kmeans(df, cl)$cluster %>%
+        as.factor() # Compute fuzzy clustering with k = 2
+      #change D2 w D3
+      
+      
+      sp <-ggscatter(cc, x = "D1", y = "D2", 
+                     label = names(df), size =max(res$spp)-res$spp,alpha=.3, legend="none",
+                     repel = TRUE)+ ggtitle(tit) 
+      
+      
+      library(ggConvexHull)
+      sp <-sp+geom_convexhull(alpha = 0.2,aes(fill = clust)) 
+      
+      nn <- as.integer(dm %>% str_replace("D", ""))
+      
+      
+      rx <- round(fitbi$R2vec[1], 2);ry<- round(fitbi$R2vec[nn],2) 
+      
+      if(input$externalGroups == T){
+        r1 <-paste(names(exx),aa ,"(", as.character(rx), ")"  )
+        r2<-paste(names(exy), ac, "(", as.character(ry), ")")
+        r3 <-paste(names(exz), ad, "(", as.character(ry), ")")
+        xxx <-ifelse(nn==2, r2, r3)
+        sp <-sp + geom_abline(slope = ab[nn,1]/ab[1,1], color="blue",linetype="dashed", size=1)+
+          geom_abline(slope =ab[nn,nn]/ab[1,nn], color="red",linetype="dashed", size=1) +
+          annotate("text", x=.2, y=(ab[nn,1]/ab[1,1])*.2, label = r1, color="blue",  fontface =4) + 
+          annotate("text", x=.2 , y =(ab[nn,nn])/(ab[1,nn])*.2,label = xxx,color="red",  fontface =4) +theme(legend.position = "none")
+      }
+      sp1 <- sp
+      
+      sp <-ggscatter(cc, x = "D1", y = "D3", 
+                     label = names(df), size =max(res$spp)-res$spp,alpha=.3, legend="none",
+                     repel = TRUE)+ ggtitle(tit) 
+      
+      
+      library(ggConvexHull)
+      sp <-sp+geom_convexhull(alpha = 0.2,aes(fill = clust)) 
+      
+      nn <- as.integer(dm %>% str_replace("D", ""))
+      
+      
+      rx <- round(fitbi$R2vec[1], 2);ry<- round(fitbi$R2vec[nn],2) 
+      
+      if(input$externalGroups == T){
+        r1 <-paste(names(exx),aa ,"(", as.character(rx), ")"  )
+        r2<-paste(names(exy), ac, "(", as.character(ry), ")")
+        r3 <-paste(names(exz), ad, "(", as.character(ry), ")")
+        xxx <-ifelse(nn==2, r2, r3)
+        sp <-sp + geom_abline(slope = ab[nn,1]/ab[1,1], color="blue",linetype="dashed", size=1)+
+          geom_abline(slope =ab[nn,nn]/ab[1,nn], color="red",linetype="dashed", size=1) +
+          annotate("text", x=.2, y=(ab[nn,1]/ab[1,1])*.2, label = r1, color="blue",  fontface =4) + 
+          annotate("text", x=.2 , y =(ab[nn,nn])/(ab[1,nn])*.2,label = xxx,color="red",  fontface =4) +theme(legend.position = "none")
+      }
+      sp2 <- sp
+      
+      p1 <-ggplot(W, aes(X1, X2)) +
+        geom_label_repel(label=levels(dd$subject), size=5)
+      p2 <-ggplot(W, aes(X1, X3)) +
+        geom_label_repel(label=levels(dd$subject), size=5)
+      sss <- grid.arrange(sp1, sp2, p1, p2, nrow = 2, top=title1)
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  
+  
+  if(input$finalRandom == T){
+    if(input$external == T)
+    {
+      groups <-dd %>% na.omit() %>%dplyr::filter_(!is.na("grp"))
+      groups <-as.factor(groups$grp)
+      groups <- groups
+      cc <- data.frame(DF2)
+      tit <- "Random"
+      
+      fitbi <- biplotmds(res2, cbind(exx, exy,exz))
+      ab <-fitbi$coefficients
+      
+      
+      sp <-ggscatter(cc, x = "D1", y = "D2", 
+                     label = names(df), size =max(res$spp)-res$spp,alpha=.3, legend="none",
+                     repel = TRUE)+ ggtitle(tit) 
+      
+      
+      library(ggConvexHull)
+      sp <-sp+geom_convexhull(alpha = 0.2,aes(fill = groups)) 
+      
+      nn <- as.integer(dm %>% str_replace("D", ""))
+      
+      
+      rx <- round(fitbi$R2vec[1], 2)
+      ry<- round(fitbi$R2vec[nn],2) 
+      
+      if(input$externalGroups == T){
+        r1 <-paste(names(exx),aa ,"(", as.character(rx), ")"  )
+        r2<-paste(names(exy), ac, "(", as.character(ry), ")")
+        r3 <-paste(names(exz), ad, "(", as.character(ry), ")")
+        xxx <-ifelse(nn==2, r2, r3)
+        sp <-sp + geom_abline(slope = ab[nn,1]/ab[1,1], color="blue",linetype="dashed", size=1)+
+          geom_abline(slope =ab[nn,nn]/ab[1,nn], color="red",linetype="dashed", size=1) +
+          annotate("text", x=.2, y=(ab[nn,1]/ab[1,1])*.2, label = r1, color="blue",  fontface =4) + 
+          annotate("text", x=.2 , y =(ab[nn,nn])/(ab[1,nn])*.2,label = xxx,color="red",  fontface =4) +theme(legend.position = "none")
+      }
+      sp1 <- sp
+      
+      sp <-ggscatter(cc, x = "D1", y = "D3", 
+                     label = names(df), size =max(res$spp)-res$spp,alpha=.3, legend="none",
+                     repel = TRUE)+ ggtitle(tit) 
+      
+      
+      library(ggConvexHull)
+      sp <-sp+geom_convexhull(alpha = 0.2,aes(fill = groups)) 
+      
+      nn <- as.integer(dm %>% str_replace("D", ""))
+      
+      
+      rx <- round(fitbi$R2vec[1], 2)
+      ry<- round(fitbi$R2vec[nn],2) 
+      
+      if(input$externalGroups == T){
+        r1 <-paste(names(exx),aa ,"(", as.character(rx), ")"  )
+        r2<-paste(names(exy), ac, "(", as.character(ry), ")")
+        r3 <-paste(names(exz), ad, "(", as.character(ry), ")")
+        xxx <-ifelse(nn==2, r2, r3)
+        sp <-sp + geom_abline(slope = ab[nn,1]/ab[1,1], color="blue",linetype="dashed", size=1)+
+          geom_abline(slope =ab[nn,nn]/ab[1,nn], color="red",linetype="dashed", size=1) +
+          annotate("text", x=.2, y=(ab[nn,1]/ab[1,1])*.2, label = r1, color="blue",  fontface =4) + 
+          annotate("text", x=.2 , y =(ab[nn,nn])/(ab[1,nn])*.2,label = xxx,color="red",  fontface =4) +theme(legend.position = "none")
+      }
+      sp2 <- sp
+      
+      
+      p1 <-ggplot(W, aes(X1, X2)) +
+        geom_label_repel(label=levels(dd$subject), size=5)
+      p2 <-ggplot(W, aes(X1, X3)) +
+        geom_label_repel(label=levels(dd$subject), size=5)
+      sss <- grid.arrange(sp1, sp2, p1, p2, nrow = 2, top=title1)
+      
+    }
+    
+    if(input$external == F){
+      cc <- data.frame(DF2)
+      tit<-"Random"
+      fitbi <- biplotmds(res2, cbind(exx, exy,exz))
+      ab <-fitbi$coefficients
+      cl <- input$noOfCluster
+      
+      set.seed(123466)
+      library(cluster)
+      clust <- kmeans(df, cl)$cluster %>%
+        as.factor() # Compute fuzzy clustering with k = 2
+      #change D2 w D3
+      
+      
+      sp <-ggscatter(cc, x = "D1", y = "D2", 
+                     label = names(df), size =max(res$spp)-res$spp,alpha=.3, legend="none",
+                     repel = TRUE)+ ggtitle(tit) 
+      
+      
+      library(ggConvexHull)
+      sp <-sp+geom_convexhull(alpha = 0.2,aes(fill = clust)) 
+      
+      nn <- as.integer(dm %>% str_replace("D", ""))
+      
+      
+      rx <- round(fitbi$R2vec[1], 2)
+      ry<- round(fitbi$R2vec[nn],2) 
+      
+      if(input$externalGroups == T){
+        r1 <-paste(names(exx),aa ,"(", as.character(rx), ")"  )
+        r2<-paste(names(exy), ac, "(", as.character(ry), ")")
+        r3 <-paste(names(exz), ad, "(", as.character(ry), ")")
+        xxx <-ifelse(nn==2, r2, r3)
+        sp <-sp + geom_abline(slope = ab[nn,1]/ab[1,1], color="blue",linetype="dashed", size=1)+
+          geom_abline(slope =ab[nn,nn]/ab[1,nn], color="red",linetype="dashed", size=1) +
+          annotate("text", x=.2, y=(ab[nn,1]/ab[1,1])*.2, label = r1, color="blue",  fontface =4) + 
+          annotate("text", x=.2 , y =(ab[nn,nn])/(ab[1,nn])*.2,label = xxx,color="red",  fontface =4) +theme(legend.position = "none")
+      }
+      sp1 <- sp
+      
+      sp <-ggscatter(cc, x = "D1", y = "D3", 
+                     label = names(df), size =max(res$spp)-res$spp,alpha=.3, legend="none",
+                     repel = TRUE)+ ggtitle(tit) 
+      
+      
+      library(ggConvexHull)
+      sp <-sp+geom_convexhull(alpha = 0.2,aes(fill = clust)) 
+      
+      nn <- as.integer(dm %>% str_replace("D", ""))
+      
+      
+      rx <- round(fitbi$R2vec[1], 2)
+      ry<- round(fitbi$R2vec[nn],2) 
+      
+      if(input$externalGroups == T){
+        r1 <-paste(names(exx),aa ,"(", as.character(rx), ")"  )
+        r2<-paste(names(exy), ac, "(", as.character(ry), ")")
+        r3 <-paste(names(exz), ad, "(", as.character(ry), ")")
+        xxx <-ifelse(nn==2, r2, r3)
+        sp <-sp + geom_abline(slope = ab[nn,1]/ab[1,1], color="blue",linetype="dashed", size=1)+
+          geom_abline(slope =ab[nn,nn]/ab[1,nn], color="red",linetype="dashed", size=1) +
+          annotate("text", x=.2, y=(ab[nn,1]/ab[1,1])*.2, label = r1, color="blue",  fontface =4) + 
+          annotate("text", x=.2 , y =(ab[nn,nn])/(ab[1,nn])*.2,label = xxx,color="red",  fontface =4) +theme(legend.position = "none")
+      }
+      sp2 <- sp
+      
+      
+      p1 <-ggplot(W, aes(X1, X2)) +
+        geom_label_repel(label=levels(dd$subject), size=5)
+      p2 <-ggplot(W, aes(X1, X3)) +
+        geom_label_repel(label=levels(dd$subject), size=5)
+      sss <- grid.arrange(sp1, sp2, p1, p2, nrow = 2, top=title1)
+      
+    }
+    
+  }
+  
+  
+  
+}
+sss

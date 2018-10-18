@@ -1,0 +1,13 @@
+name: mdsApp
+title: mdsApp
+username:
+account: ogulcangok
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 520940
+bundleId: 1649499
+url: https://ogulcangok.shinyapps.io/mdsApp/
+when: 1539867413.19409
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: .RData|1.1.dist.row.R|dd.csv|dd2.csv|dd3.csv|dd4.csv|df.csv|df4.csv|dfo.csv|gg.csv|help.md|z4.csv|z5.csv|z6.csv|zz.csv|scripts
