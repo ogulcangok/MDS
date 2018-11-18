@@ -20,96 +20,122 @@ library("ggplotify")
 library(ggfortify)
 library(grid)
 
-dataSets <- function(){
-  a <- data(package ="smacof")
-  a <- as.data.frame(a$results)
-  a <- a$Item
-  
-  return(as.character(a))
-}
-
-
 # Define UI for application that draws a histogram
 ui <- dashboardPagePlus(
   dashboardHeaderPlus(title = "MDS"),
   dashboardSidebar(
     
     sidebarMenu(
+      menuItem("Welcome Page",tabName = "welcome"),
       menuItem("Data",tabName = "data"),
       menuItem("Explore",tabName = "explore"),
       menuItem("Diagnostic",tabName = "diagnostics"),
       menuItem("Final Model",tabName = "final")
       
-      )
+    )
     
   ),
   dashboardBody(
     # Boxes need to be put in a row (or column)
     tabItems(
-      
+      tabItem("welcome",
+              box(width = "auto",
+              htmlOutput("welcomeOut"))),
       tabItem(tabName = "data",
               boxPlus(
-                tags$h4("Data Selection"),
+                tags$h4("Scree Plot"),
                 tags$hr(),
+                
+                
+                
                 checkboxInput("upload","I will upload"),
                 checkboxInput("select","I will select"),
                 conditionalPanel(
                   condition = "input.upload == true ",
-                  fileInput("dataInput","Upload your data")
+                  fileInput("dataInput","Upload your data"),
+                  checkboxInput("direct","Direct"),
+                  checkboxInput("indirect","Indirect"),
+                  conditionalPanel(condition = "input.indirect == true",
+                                   tags$hr(),
+                                   tags$h3("Indirect Types"),
+                                   tags$hr(),
+                                   checkboxInput("nominal","Nominal"),
+                                   conditionalPanel(
+                                     condition = "input.nominal == true", 
+                                     tags$hr(),
+                                     selectInput("nominMethod","Select Method",c("chuprov", "g",  "mutual", "variation")),
+                                     tags$hr()
+                                   ),
+                                   
+                                   
+                                   checkboxInput("distance","Distance"),
+                                   
+                                   conditionalPanel(
+                                     condition = "input.distance==true",
+                                     tags$hr(),
+                                     
+                                     
+                                     checkboxInput("disBin","Binary?"),
+                                     selectInput("disMtd","Select Method",c("manhattan", "euclidean", "canberra", "clark", "bray", "kulczynski", "jaccard", "gower", "altGower", "morisita", "horn", "mountford", "raup", "binomial", "chao", "cao", "mahalanobis")),
+                                     
+                                     tags$hr(),
+                                     checkboxInput("disCol","Column"),
+                                     checkboxInput("disRow","Row"),
+                                     tags$hr()
+                                   ),
+                                   checkboxInput("similarity","Similarity"),
+                                   conditionalPanel(
+                                     condition = "input.similarity==true",
+                                     tags$hr(),
+                                     selectInput("simMtd","Select Method",c("pearson", "kendall", "spearman")),
+                                     checkboxInput("simCol","Column"),
+                                     checkboxInput("simRow","Row"),
+                                     tags$hr()
+                                     
+                                     
+                                   ),
+                                   checkboxInput("gravity","Gravity")
+                                   
+                  )
                   
                 ),
                 conditionalPanel(
                   condition = "input.select == true",
-                  selectInput("dataSelect","Select Data Set",choices = dataSets())
+                  selectInput("dataSelect","Select Data Set",choices = c("","direct","nominal","distance","similarity","gravity"))
                   
                 ),
                 
-                tags$h4("Type"),
-                tags$hr(),
-                checkboxInput("direct","Direct"),
-                checkboxInput("indirect","Indirect"),
-                conditionalPanel(condition = "input.indirect == true",
-                                 tags$hr(),
-                                 tags$h3("Indirect Types"),
-                                 tags$hr(),
-                                 checkboxInput("nominal","Nominal"),
-                                 conditionalPanel(
-                                   condition = "input.nominal == true", 
-                                   tags$hr(),
-                                   selectInput("nominMethod","Select Method",c("chuprov", "g",  "mutual", "variation")),
-                                   tags$hr()
-                                 ),
-                                 
-                                 
-                                 checkboxInput("distance","Distance"),
-                               
-                                 conditionalPanel(
-                                   condition = "input.distance==true",
-                                   tags$hr(),
-                                   
-                                  
-                                   checkboxInput("disBin","Binary?"),
-                                   selectInput("disMtd","Select Method",c("manhattan", "euclidean", "canberra", "clark", "bray", "kulczynski", "jaccard", "gower", "altGower", "morisita", "horn", "mountford", "raup", "binomial", "chao", "cao", "mahalanobis")),
-                                   
-                                   tags$hr(),
-                                   checkboxInput("disCol","Column"),
-                                   checkboxInput("disRow","Row"),
-                                   tags$hr()
-                                 ),
-                                 checkboxInput("similarity","Similarity"),
-                                 conditionalPanel(
-                                   condition = "input.similarity==true",
-                                   tags$hr(),
-                                   selectInput("simMtd","Select Method",c("pearson", "kendall", "spearman")),
-                                   checkboxInput("simCol","Column"),
-                                   checkboxInput("simRow","Row"),
-                                   tags$hr()
-                                   
-                                   
-                                 ),
-                                 checkboxInput("gravity","Gravity")
-                                 
+                conditionalPanel(
+                  condition = "input.dataSelect=='nominal'", 
+                  tags$hr(),
+                  selectInput("nominMethod","Select Method",c("chuprov", "g",  "mutual", "variation")),
+                  tags$hr()
                 ),
+                
+                conditionalPanel(
+                  condition = "input.dataSelect=='distance'",
+                  tags$hr(),
+                  
+                  checkboxInput("disBin","Binary?"),
+                  selectInput("disMtd","Select Method",c("manhattan", "euclidean", "canberra", "clark", "bray", "kulczynski", "jaccard", "gower", "altGower", "morisita", "horn", "mountford", "raup", "binomial", "chao", "cao", "mahalanobis")),
+                  
+                  tags$hr(),
+                  checkboxInput("disCol2","Column"),
+                  checkboxInput("disRow2","Row"),
+                  tags$hr()
+                ),
+                
+                conditionalPanel(
+                  condition = "input.dataSelect== 'similarity'",
+                  tags$hr(),
+                  selectInput("simMtd","Select Method",c("pearson", "kendall", "spearman")),
+                  checkboxInput("simCol2","Column"),
+                  checkboxInput("simRow2","Row"),
+                  tags$hr()
+                  
+                  
+                ),
+                
                 actionButton("screeGo","Scree Plot"),
                 tags$hr(),
                 tags$h4("IC Plot"),
@@ -121,6 +147,7 @@ ui <- dashboardPagePlus(
                 
               ),#end of box
               boxPlus(
+              
                 title = "Plot",
                 withSpinner(
                   plotOutput("plot0")),
@@ -129,9 +156,7 @@ ui <- dashboardPagePlus(
                 footer = "Lorem Ipsum"
               )
               
-              
-              
-      ),#endof data tab
+              ),#endof data tab
       tabItem(tabName = "explore",
               box(
                 tags$h4("Model"),
@@ -162,8 +187,6 @@ ui <- dashboardPagePlus(
                   textInput("scale33","Enter Scale Name")
                 ),
                 
-               
-                
                 actionButton("modelGo","Go")),
               boxPlus(
                 title = "Plot",
@@ -172,12 +195,7 @@ ui <- dashboardPagePlus(
                 footer = "Lorem Ipsum"
               )
               
-              
-              
-              
-              
-              
-      ),#end Of Explore Tab
+              ),#end Of Explore Tab
       tabItem(tabName = "diagnostics",
               boxPlus(title = "Options",
                       checkboxInput("torgerson","Torgerson"),
@@ -201,10 +219,8 @@ ui <- dashboardPagePlus(
                 boxPlus(title = "stability",plotOutput("stabilityPlot") %>% withSpinner(color="#0dc5c1"),footer = "Lorem Ipsum")
               )
               
-              
-              
-              
-      ),#end of diag
+            
+              ),#end of diag
       tabItem(tabName = "final",
               boxPlus(checkboxInput("finalTorgerson","Torgerson"),
                       checkboxInput("finalRandom","Random"),
@@ -214,8 +230,8 @@ ui <- dashboardPagePlus(
                       conditionalPanel(
                         condition = "input.di == 3",
                         plotlyOutput("final3d") %>% withSpinner(color="#0dc5c1"))
-                      ),
-             
+              ),
+              
               boxPlus(
                 conditionalPanel(
                   condition = "input.di == 3",
@@ -225,7 +241,7 @@ ui <- dashboardPagePlus(
                 ),
                 conditionalPanel(
                   condition = "input.di == 2",
-                  plotOutput("finalModel")%>% withSpinner(color="#0dc5c1"))
+                  plotOutput("finalModel",width = "auto",height = 950)%>% withSpinner(color="#0dc5c1"))
               )
               
               
@@ -243,21 +259,27 @@ ui <- dashboardPagePlus(
 # Define server logic required to draw a histogram
 server <- function(input, output,session) {
   
-  
+  output$welcomeOut <- renderPrint({
+    
+    includeHTML("Instructions.html")
+    
+  })
   
   readData <- reactive({
     
-    
-    if(input$select == T){
-      dat <- input$dataSelect
-      
-      
-      
-    }
-    else{
+    if(input$upload == T){
       dat <-read.csv(input$dataInput$datapath)
     }
+    if(input$select == T)
+    {
+      if(input$dataSelect == "direct"){ dat <- read.csv("data/direct.csv")}
+      if(input$dataSelect == "nominal"){ dat <- read.csv("data/nominal.csv")}
+      if(input$dataSelect == "distance"){ dat <- read.csv("data/distance.csv")}
+      if(input$dataSelect == "similarity"){ dat <- read.csv("data/similarity.csv")}
+      if(input$dataSelect == "gravity"){ dat <- read.csv("data/gravity.csv")}
+    }  
     dat
+    
   })
   
   direct <- reactive({
@@ -277,9 +299,7 @@ server <- function(input, output,session) {
     rownames(df) <-names(df)
     df
     
-    
-    
-  })
+    })
   
   nomin <- reactive({
     mtd <- input$nominMethod
@@ -300,13 +320,12 @@ server <- function(input, output,session) {
     
     df
     
-    
-  })
+    })
   
   distan <- reactive({
     mtd <<- input$disMtd
     bi <<- input$disBin
-    if(input$disCol == T){
+    if(input$disCol == T || input$disCol2 == T){
       
       
       library(vegan)
@@ -337,7 +356,7 @@ server <- function(input, output,session) {
       
       
     }
-    if(input$disRow == T){
+    if(input$disRow == T || input$disRow2 == T){
       
       
       library(vegan)
@@ -372,7 +391,7 @@ server <- function(input, output,session) {
   simil <- reactive({
     
     mtd <<- input$simMtd
-    if(input$simCol == T){
+    if(input$simCol == T || input$simCol2 == T){
       
       
       dd <<-readData()%>% dplyr::select(-c("rexx", "rexy", "rexz", "rgrp"))
@@ -400,7 +419,7 @@ server <- function(input, output,session) {
       
       
     }
-    if(input$simRow == T){
+    if(input$simRow == T || input$simRow2 == T){
       
       dd <<-readData()%>% dplyr::select(-c("exx", "exy",  "exz", "grp"))
       rnms<-levels(factor(dd$row.name, exclude = ""))
@@ -455,11 +474,11 @@ server <- function(input, output,session) {
   
   scree <- eventReactive(input$screeGo,{
     
-    if(input$direct == T){df <- direct()}
-    if(input$nominal == T) {df <- nomin()}
-    if(input$distance == T){df <-distan()}
-    if(input$similarity == T){df <- simil()}
-    if(input$gravity == T){df <- grav()}
+    if(input$dataSelect == "direct" || input$direct == T){df <- direct()}
+    if(input$dataSelect == "nominal" || input$nominal == T) {df <- nomin()}
+    if(input$dataSelect == "distance" || input$distance == T){df <- distan()}
+    if(input$dataSelect == "similarity" || input$similarity == T){df <- simil()}
+    if(input$dataSelect == "gravity" || input$gravity == T){df <- grav()}
     
     xa <- mds(df, ndim = 1, type=input$ty, ties=input$tie)$stress
     xb <- mds(df, ndim = 2, type=input$ty, ties=input$tie)$stress
@@ -486,21 +505,17 @@ server <- function(input, output,session) {
     p <-xyplot(ccc$x+ccc$y~as.numeric(rownames(ccc)), type="l", xlab="Dimensions",
                ylab="Stress") + as.layer(xyplot(ccc$x+ccc$y~as.numeric(rownames(ccc)), type="p"))
     
+    p
     
-    
- p
-    
-    
-    
-  })
+    })
   
   ic <- eventReactive(input$go,{
     
-    if(input$direct == T){df <- direct()}
-    if(input$nominal == T) {df <- nomin()}
-    if(input$distance == T){df <-distan()}
-    if(input$similarity == T){df <- simil()}
-    if(input$gravity == T){df <- grav()}
+    if(input$dataSelect == "direct" || input$direct == T){df <- direct()}
+    if(input$dataSelect == "nominal" || input$nominal == T) {df <- nomin()}
+    if(input$dataSelect == "distance" || input$distance == T){df <-distan()}
+    if(input$dataSelect == "similarity" || input$similarity == T){df <- simil()}
+    if(input$dataSelect == "gravity" || input$gravity == T){df <- grav()}
     
     nr <- 20
     
@@ -512,24 +527,19 @@ server <- function(input, output,session) {
     
   })
   
-  
-  
-  
   model1 <- reactive({
-    if(input$direct == T){df <- direct()}
-    if(input$nominal == T) {df <- nomin()}
-    if(input$distance == T){df <-distan()}
-    if(input$similarity == T){df <- simil()}
-    if(input$gravity == T){df <- grav()}
-    
+    if(input$dataSelect == "direct" || input$direct == T){df <- direct()}
+    if(input$dataSelect == "nominal" || input$nominal == T) {df <- nomin()}
+    if(input$dataSelect == "distance" || input$distance == T){df <-distan()}
+    if(input$dataSelect == "similarity" || input$similarity == T){df <- simil()}
+    if(input$dataSelect == "gravity" || input$gravity == T){df <- grav()}
     if(input$mds == T){
       
       res <- mds(df,ndim =as.integer(input$di), type = input$ty, ties=input$tie,  itmax = 10000,init = "torgerson")
       
       DF1 <<-res$conf 
       
-      
-    }
+       }
     
     if(input$indscal == T){
       res <- indscal(zz, ndim =as.integer(input$di), type = input$ty, ties=input$tie,  itmax = 100000)
@@ -540,9 +550,7 @@ server <- function(input, output,session) {
       W <-unlist(Wk %>%map(~diag(.)))
       W<<-data.frame(matrix(W, ncol=ncol(DF1), nrow=nlevels(dd$subject),byrow=TRUE))
       
-      
-      
-    }
+      }
     if(input$idioscal == T){
       res <- idioscal(zz,ndim =as.integer(input$di), type = input$ty, ties=input$tie,  itmax = 100000)
       
@@ -562,93 +570,76 @@ server <- function(input, output,session) {
   
   model2 <- reactive({
     
-    
-    if(input$direct == T){df <- direct()}
-    if(input$nominal == T) {df <- nomin()}
-    if(input$distance == T){df <-distan()}
-    if(input$similarity == T){df <- simil()}
-    if(input$gravity == T){df <- grav()}
-    
+    if(input$dataSelect == "direct" || input$direct == T){df <- direct()}
+    if(input$dataSelect == "nominal" || input$nominal == T) {df <- nomin()}
+    if(input$dataSelect == "distance" || input$distance == T){df <-distan()}
+    if(input$dataSelect == "similarity" || input$similarity == T){df <- simil()}
+    if(input$dataSelect == "gravity" || input$gravity == T){df <- grav()}
     
     nr <- 20
     res0 <- icExplore(df, ndim =as.integer(input$di), type = input$ty, ties=input$tie, nrep = nr, returnfit = TRUE, itmax = 10000)
     
-    
     confi <-res0$mdsfit[[input$confNo]]$conf
     if(input$mds == T){
-      
-      
-      
       
       res2 <- mds(df,ndim =as.integer(input$di), type = input$ty, ties=input$tie,  itmax = 10000, init = confi)
       
       DF2 <<- res2$conf
-      
-      
-    }
+    
+      }
     
     if(input$indscal == T){
-      
       
       res2 <-indscal(zz, ndim =as.integer(input$di), type = input$ty, ties=input$tie, init = confi, itmax = 100000)
       names(res2$spp)<- names(df)
       DF2 <<-res2$gspace
       
-      
-      
-      
-    }
+      }
     if(input$idioscal == T){
       
-      
       resind2 <-idioscal(zz, ndim =as.integer(input$di), type = input$ty, ties=input$tie,init = confi,itmax = 100000)
-      
       DF2 <<-resind2$gspace
       
     }
     
-    
     DF2
     
-    
-  })
+    })
   
   output$plot0 <- renderPlot({
     
     scree()
     
-    
-  })
+    })
   
   output$plot1 <- renderPlot({
     
     ic()
-    
-    
-  })
+  
+     })
   
   dispModel <- eventReactive(input$modelGo,{
     
     DF1 <- model1()
     DF2 <- model2()
     
-    if(input$direct == T){df <- direct()}
-    if(input$nominal == T) {df <- nomin()}
-    if(input$distance == T){df <-distan()}
-    if(input$similarity == T){df <- simil()}
-    if(input$gravity == T){df <- grav()}
+    if(input$dataSelect == "direct" || input$direct == T){df <- direct()}
+    if(input$dataSelect == "nominal" || input$nominal == T) {df <- nomin()}
+    if(input$dataSelect == "distance" || input$distance == T){df <-distan()}
+    if(input$dataSelect == "similarity" || input$similarity == T){df <- simil()}
+    if(input$dataSelect == "gravity" || input$gravity == T){df <- grav()}
+    
     res <- mds(df,ndim =as.integer(input$di), type = input$ty, ties=input$tie,  itmax = 10000,init = "torgerson")
     nr <- 20
     res0 <- icExplore(df, ndim =as.integer(input$di), type = input$ty, ties=input$tie, nrep = nr, returnfit = TRUE, itmax = 10000)
     confi <-res0$mdsfit[[input$confNo]]$conf
     res2 <- mds(df,ndim =as.integer(input$di), type = input$ty, ties=input$tie,  itmax = 10000, init = confi)
     
-    
     dm <- input$dimSelect
     if(input$di == 2){
-    aa <- input$scale1
-    ac <- input$scale2
-    ad <- input$scale3
+      aa <- input$scale1
+      ac <- input$scale2
+      ad <- input$scale3
     }
     if(input$di == 3){
       aa <- input$scale11
@@ -678,23 +669,20 @@ server <- function(input, output,session) {
       
       nn <- as.integer(dm %>% str_replace("D", ""))
       
-      
       rx <- round(fitbi$R2vec[1], 2)
       ry<- round(fitbi$R2vec[nn],2) 
       if(input$externalGroups == T){
-      r1 <-paste(names(exx),aa ,"(", as.character(rx), ")"  )
-      r2<-paste(names(exy), ac, "(", as.character(ry), ")")
-      r3 <-paste(names(exz), ad, "(", as.character(ry), ")")
-      xxx <-ifelse(nn==2, r2, r3)
-      sp <-sp + geom_abline(slope = ab[nn,1]/ab[1,1], color="blue",linetype="dashed", size=1)+
-        geom_abline(slope =ab[nn,nn]/ab[1,nn], color="red",linetype="dashed", size=1) +
-        annotate("text", x=.2, y=(ab[nn,1]/ab[1,1])*.2, label = r1, color="blue",  fontface =4) + 
-        annotate("text", x=.2 , y =(ab[nn,nn])/(ab[1,nn])*.2,label = xxx,color="red",  fontface =4) +theme(legend.position = "none")
+        r1 <-paste(names(exx),aa ,"(", as.character(rx), ")"  )
+        r2<-paste(names(exy), ac, "(", as.character(ry), ")")
+        r3 <-paste(names(exz), ad, "(", as.character(ry), ")")
+        xxx <-ifelse(nn==2, r2, r3)
+        sp <-sp + geom_abline(slope = ab[nn,1]/ab[1,1], color="blue",linetype="dashed", size=1)+
+          geom_abline(slope =ab[nn,nn]/ab[1,nn], color="red",linetype="dashed", size=1) +
+          annotate("text", x=.2, y=(ab[nn,1]/ab[1,1])*.2, label = r1, color="blue",  fontface =4) + 
+          annotate("text", x=.2 , y =(ab[nn,nn])/(ab[1,nn])*.2,label = xxx,color="red",  fontface =4) +theme(legend.position = "none")
       }
       
       sp1 <-sp
-      
-      
       
       cc <- data.frame(DF2)
       tit <- "Random"
@@ -709,7 +697,6 @@ server <- function(input, output,session) {
       sp <-sp+geom_convexhull(alpha = 0.2,aes(fill = groups)) 
       
       nn <- as.integer(dm %>% str_replace("D", ""))
-      
       
       rx <- round(fitbi$R2vec[1], 2)
       ry<- round(fitbi$R2vec[nn],2) 
@@ -736,11 +723,11 @@ server <- function(input, output,session) {
       cl <- input$noOfCluster
       set.seed(123466)
       library(cluster)
-      if(input$gravity == F){
-      clust <- kmeans(df, cl)$cluster %>%
-        as.factor()
+      if(input$dataSelect != "gravity" && input$gravity == F){
+        clust <- kmeans(df, cl)$cluster %>%
+          as.factor()
       }# Compute fuzzy clustering with k = 2
-      if(input$gravity == T){clust <- kmeans(cc, cl)$cluster %>% as.factor() }
+      if(input$dataSelect == "gravity" || input$gravity == T){clust <- kmeans(cc, cl)$cluster %>% as.factor() }
       #change D2 w D3
       groups <- clust
       
@@ -776,8 +763,6 @@ server <- function(input, output,session) {
       
       sp1 <-sp
       
-      
-      
       cc <- data.frame(DF2)
       tit <- "Random"
       fitbi <- biplotmds(res2, cbind(exx, exy,exz))
@@ -812,8 +797,7 @@ server <- function(input, output,session) {
       
       sss <- grid.arrange(sp1, sp2, nrow = 1)
       
-      
-    }
+      }
     
     sss
     
@@ -825,11 +809,11 @@ server <- function(input, output,session) {
   })
   
   selectFit <- reactive({
-    if(input$direct == T){df <- direct()}
-    if(input$nominal == T) {df <- nomin()}
-    if(input$distance == T){df <-distan()}
-    if(input$similarity == T){df <- simil()}
-    if(input$gravity == T){df <- grav()}
+    if(input$dataSelect == "direct" || input$direct == T){df <- direct()}
+    if(input$dataSelect == "nominal" || input$nominal == T) {df <- nomin()}
+    if(input$dataSelect == "distance" || input$distance == T){df <-distan()}
+    if(input$dataSelect == "similarity" || input$similarity == T){df <- simil()}
+    if(input$dataSelect == "gravity" || input$gravity == T){df <- grav()}
     
     if(input$torgerson == T){
       di <<- as.integer(input$di)
@@ -840,7 +824,7 @@ server <- function(input, output,session) {
       if(input$indscal == T){ fit <<- indscal(zz, ndim = di, type=typ, ties=tay,  itmax = 100000)}
       if(input$ idioscal == T){fit <<- idioscal(zz, ndim = di, type=typ, ties=tay,  itmax = 100000)}
       
-   
+      
     }
     if(input$random == T){
       nr <- 20 
@@ -851,7 +835,7 @@ server <- function(input, output,session) {
       typ <<- input$ty
       tay <<- input$tie
       
-     
+      
       if(input$mds == T){   fit <<- mds(df,ndim =di, type = typ, ties=tay,  itmax = 10000,init = confi)}
       if(input$indscal == T){ fit <<- indscal(zz, type=typ, ties=tay, ndim = di, init = confi, itmax = 100000)}
       if(input$ idioscal == T){fit <<- idioscal(zz, type=typ, ties=tay, ndim = di, init = confi, itmax = 100000)}
@@ -864,32 +848,35 @@ server <- function(input, output,session) {
   shepard <- eventReactive(input$shepGo,{
     fit <- selectFit()
     if(input$idioscal == T || input$indscal == T){
-  
-    txt <- paste("stress= ",round(fit$stress, digits=3 ) , sep = "")
-    plot(fit, plot.type = "Shepard", main = "Shepard Diagram", sub=txt,cex=1.5 )
+      
+      txt <- paste("stress= ",round(fit$stress, digits=3 ) , sep = "")
+      plot(fit, plot.type = "Shepard", main = "Shepard Diagram", sub=txt,cex=1.5 )
     }
     if(input$mds == T){
-    op <- par(mfrow = c(1,2))
-    par(cex=1.2)
-    txt <- paste("stress= ",round(fit$stress, digits=3 ) , sep = "")
-    plot(fit, plot.type = "Shepard", main = "Shepard Diagram", sub=txt,cex=1.5 )
-    
-    set.seed(1234)
-    res.perm <- permtest(fit, nrep =200, verbose = FALSE)
-    plot(res.perm)
-    par(op)
+      op <- par(mfrow = c(1,2))
+      par(cex=1.2)
+      txt <- paste("stress= ",round(fit$stress, digits=3 ) , sep = "")
+      plot(fit, plot.type = "Shepard", main = "Shepard Diagram", sub=txt,cex=1.5 )
+      
+      set.seed(1234)
+      res.perm <- permtest(fit, nrep =200, verbose = FALSE)
+      plot(res.perm)
+      par(op)
     }
   })
   
   output$shepardPlot <- renderPlot({
     
     shepard()
-    
-    
-  })
+  
+     })
   
   stress <- eventReactive(input$stressGo,{
-    
+    if(input$dataSelect == "direct" || input$direct == T){df <- direct()}
+    if(input$dataSelect == "nominal" || input$nominal == T) {df <- nomin()}
+    if(input$dataSelect == "distance" || input$distance == T){df <-distan()}
+    if(input$dataSelect == "similarity" || input$similarity == T){df <- simil()}
+    if(input$dataSelect == "gravity" || input$gravity == T){df <- grav()}
     fit <<- selectFit()
     par(cex=1.2)
     p1 <-as.grob(~plot(fit, plot.type = "stressplot"))
@@ -919,12 +906,11 @@ server <- function(input, output,session) {
         typ <<- input$ty
         tay <<- input$tie
         
-        
         if(input$mds == T){   res <- mds(df,ndim =di, type = typ, ties=tay,  itmax = 10000,init = confi)}
         if(input$indscal == T){ res <- indscal(zz, type=typ, ties=tay, ndim = di, init = confi, itmax = 100000)}
         if(input$ idioscal == T){res <- idioscal(zz, type=typ, ties=tay, ndim = di, init = confi, itmax = 100000)}
       }
-        
+      
       dh <-fit$dhat
       dh <-dh %>% map(~as.matrix(.x))
       dha <-data.frame(Reduce(`+`, dh)/length(dh)) #this takes an average of a list
@@ -948,25 +934,24 @@ server <- function(input, output,session) {
   
   output$stressPlot <- renderPlot({
     
-    
     stress()
     
   })
   
   stabil <- eventReactive(input$stabilGo,{
-    if(input$direct == T){df <- direct()}
-    if(input$nominal == T) {df <- nomin()}
-    if(input$distance == T){df <-distan()}
-    if(input$similarity == T){df <- simil()}
-    if(input$gravity == T){df <- grav()}
+    
+    if(input$dataSelect == "direct" || input$direct == T){df <- direct()}
+    if(input$dataSelect == "nominal" || input$nominal == T) {df <- nomin()}
+    if(input$dataSelect == "distance" || input$distance == T){df <-distan()}
+    if(input$dataSelect == "similarity" || input$similarity == T){df <- simil()}
+    if(input$dataSelect == "gravity" || input$gravity == T){df <- grav()}
     fit <- selectFit()
     op <- par(mfrow = c(1,2))
     JK <-jackknife(fit)
     plot(JK)
     set.seed(123)
     resboot <- bootmds(fit, data=df, method.dat="euclidean", nrep=500)
-    plot(resboot, main="", xlab="", ylab="", col.axis = "white", ell=list(lty=1,
-                                                                          col="black", cex=2, label.conf=list(label=TRUE, pos=3, col=1, cex=1.5)))
+    plot(resboot, main="", xlab="", ylab="", col.axis = "white", ell=list(lty=1,col="black", cex=2, label.conf=list(label=TRUE, pos=3, col=1, cex=1.5)))
     
     par(op)
     
@@ -976,24 +961,26 @@ server <- function(input, output,session) {
     
     stabil()
     
-    
-  })
+    })
   
   finalModelDraw <- eventReactive(input$finalGo,{
+    
     DF1 <- model1()
     DF2 <- model2()
+    
     title1 <- input$modelTitle
-    if(input$direct == T){df <- direct()}
-    if(input$nominal == T) {df <- nomin()}
-    if(input$distance == T){df <-distan()}
-    if(input$similarity == T){df <- simil()}
-    if(input$gravity == T){df <- grav()}
+    
+    if(input$dataSelect == "direct" || input$direct == T){df <- direct()}
+    if(input$dataSelect == "nominal" || input$nominal == T) {df <- nomin()}
+    if(input$dataSelect == "distance" || input$distance == T){df <-distan()}
+    if(input$dataSelect == "similarity" || input$similarity == T){df <- simil()}
+    if(input$dataSelect == "gravity" || input$gravity == T){df <- grav()}
+    
     res <- mds(df,ndim =as.integer(input$di), type = input$ty, ties=input$tie,  itmax = 10000,init = "torgerson")
     nr <- 20
     res0 <- icExplore(df, ndim =as.integer(input$di), type = input$ty, ties=input$tie, nrep = nr, returnfit = TRUE, itmax = 10000)
     confi <-res0$mdsfit[[input$confNo]]$conf
     res2 <- mds(df,ndim =as.integer(input$di), type = input$ty, ties=input$tie,  itmax = 10000, init = confi)
-    
     
     dm <- input$dimSelect
     if(input$di == 2){
@@ -1006,7 +993,7 @@ server <- function(input, output,session) {
       ac <- input$scale22
       ad <- input$scale33
       
-    }
+      }
     
     if(input$mds == T){
       if(input$finalTorgerson == T){
@@ -1060,12 +1047,12 @@ server <- function(input, output,session) {
           set.seed(123466)
           library(cluster)
           
-          if(input$gravity == F){
+          if(input$dataSelect != "gravity" && input$gravity == F){
             clust <- kmeans(df, cl)$cluster %>%
               as.factor()
           }# Compute fuzzy clustering with k = 2 # Compute fuzzy clustering with k = 2
           #change D2 w D3
-          if(input$gravity == T){clust <- kmeans(cc, cl)$cluster %>% as.factor() }
+          if(input$dataSelect == "gravity" || input$gravity == T){clust <- kmeans(cc, cl)$cluster %>% as.factor() }
           
           sp <-ggscatter(cc, x = "D1", y = input$dm, 
                          label = names(df), size =max(res$spp)-res$spp,alpha=.3, legend="none",
@@ -1093,7 +1080,7 @@ server <- function(input, output,session) {
           
         }
         
-        }
+      }
       
       if(input$finalRandom == T){
         if(input$external == T)
@@ -1106,6 +1093,7 @@ server <- function(input, output,session) {
           
           fitbi <- biplotmds(res2, cbind(exx, exy,exz))
           ab <-fitbi$coefficients
+          
           
           
           sp <-ggscatter(cc, x = "D1", y = dm, 
@@ -1145,12 +1133,12 @@ server <- function(input, output,session) {
           set.seed(123466)
           library(cluster)
           
-          if(input$gravity == F){
+          if(input$dataSelect != "gravity" && input$gravity == F){
             clust <- kmeans(df, cl)$cluster %>%
               as.factor()
           }# Compute fuzzy clustering with k = 2 # Compute fuzzy clustering with k = 2
           #change D2 w D3
-          if(input$gravity == T){clust <- kmeans(cc, cl)$cluster %>% as.factor() }
+          if(input$dataSelect == "gravity" || input$gravity == T){clust <- kmeans(cc, cl)$cluster %>% as.factor() }
           
           sp <-ggscatter(cc, x = "D1", y = input$dm, 
                          label = names(df), size =max(res$spp)-res$spp,alpha=.3, legend="none",
@@ -1195,7 +1183,7 @@ server <- function(input, output,session) {
           ab <-fitbi$coefficients
           
           
-          sp <-ggscatter(cc, x = "D1", y = dm, 
+          sp <-ggscatter(cc, x = "D1", y = "D2", 
                          label = names(df), size =max(res$spp)-res$spp,alpha=.3, legend="none",
                          repel = TRUE)+ ggtitle(tit) 
           
@@ -1236,14 +1224,14 @@ server <- function(input, output,session) {
           set.seed(123466)
           library(cluster)
           
-          if(input$gravity == F){
+          if(input$dataSelect != "gravity" && input$gravity == F){
             clust <- kmeans(df, cl)$cluster %>%
               as.factor()
           }# Compute fuzzy clustering with k = 2 # Compute fuzzy clustering with k = 2
           #change D2 w D3
-          if(input$gravity == T){clust <- kmeans(cc, cl)$cluster %>% as.factor() }
+          if(input$dataSelect == "gravity" || input$gravity == T){clust <- kmeans(cc, cl)$cluster %>% as.factor() }
           
-          sp <-ggscatter(cc, x = "D1", y = input$dm, 
+          sp <-ggscatter(cc, x = "D1", y = "D2", 
                          label = names(df), size =max(res$spp)-res$spp,alpha=.3, legend="none",
                          repel = TRUE)+ ggtitle(tit) 
           
@@ -1273,7 +1261,7 @@ server <- function(input, output,session) {
           
         }
         
-        }
+      }
       
       if(input$finalRandom == T){
         if(input$external == T)
@@ -1288,7 +1276,7 @@ server <- function(input, output,session) {
           ab <-fitbi$coefficients
           
           
-          sp <-ggscatter(cc, x = "D1", y = dm, 
+          sp <-ggscatter(cc, x = "D1", y = "D2", 
                          label = names(df), size =max(res$spp)-res$spp,alpha=.3, legend="none",
                          repel = TRUE)+ ggtitle(tit) 
           
@@ -1328,14 +1316,14 @@ server <- function(input, output,session) {
           
           set.seed(123466)
           library(cluster)
-          if(input$gravity == F){
+          if(input$dataSelect != "gravity" && input$gravity == F){
             clust <- kmeans(df, cl)$cluster %>%
               as.factor()
           }# Compute fuzzy clustering with k = 2 # Compute fuzzy clustering with k = 2
           #change D2 w D3
           
-          if(input$gravity == T){clust <- kmeans(cc, cl)$cluster %>% as.factor() }
-          sp <-ggscatter(cc, x = "D1", y = input$dm, 
+          if(input$dataSelect == "gravity" || input$gravity == T){clust <- kmeans(cc, cl)$cluster %>% as.factor() }
+          sp <-ggscatter(cc, x = "D1", y = "D2", 
                          label = names(df), size =max(res$spp)-res$spp,alpha=.3, legend="none",
                          repel = TRUE)+ ggtitle(tit) 
           
@@ -1367,20 +1355,19 @@ server <- function(input, output,session) {
         
       }
       
-      
-      
-    }
+       }
     sp
     
   })
   
   
   TDModel <- eventReactive(input$finalGo,{
-    if(input$direct == T){df <- direct()}
-    if(input$nominal == T) {df <- nomin()}
-    if(input$distance == T){df <-distan()}
-    if(input$similarity == T){df <- simil()}
-    if(input$gravity == T){df <- grav()}
+    
+    if(input$dataSelect == "direct" || input$direct == T){df <- direct()}
+    if(input$dataSelect == "nominal" || input$nominal == T) {df <- nomin()}
+    if(input$dataSelect == "distance" || input$distance == T){df <-distan()}
+    if(input$dataSelect == "similarity" || input$similarity == T){df <- simil()}
+    if(input$dataSelect == "gravity" || input$gravity == T){df <- grav()}
     library(plotly)
     
     t <- list(
@@ -1401,21 +1388,19 @@ server <- function(input, output,session) {
   
   TTModel <- eventReactive(input$finalGo,{
     
-    
     DF1 <- model1()
     DF2 <- model2()
     title1 <- input$modelTitle
-    if(input$direct == T){df <- direct()}
-    if(input$nominal == T) {df <- nomin()}
-    if(input$distance == T){df <-distan()}
-    if(input$similarity == T){df <- simil()}
-    if(input$gravity == T){df <- grav()}
+    if(input$dataSelect == "direct" || input$direct == T){df <- direct()}
+    if(input$dataSelect == "nominal" || input$nominal == T) {df <- nomin()}
+    if(input$dataSelect == "distance" || input$distance == T){df <-distan()}
+    if(input$dataSelect == "similarity" || input$similarity == T){df <- simil()}
+    if(input$dataSelect == "gravity" || input$gravity == T){df <- grav()}
     res <- mds(df,ndim =as.integer(input$di), type = input$ty, ties=input$tie,  itmax = 10000,init = "torgerson")
     nr <- 20
     res0 <- icExplore(df, ndim =as.integer(input$di), type = input$ty, ties=input$tie, nrep = nr, returnfit = TRUE, itmax = 10000)
     confi <-res0$mdsfit[[input$confNo]]$conf
     res2 <- mds(df,ndim =as.integer(input$di), type = input$ty, ties=input$tie,  itmax = 10000, init = confi)
-    
     
     dm <- input$dimSelect
     if(input$di == 2){
@@ -1510,12 +1495,12 @@ server <- function(input, output,session) {
           set.seed(123466)
           library(cluster)
           
-          if(input$gravity == F){
+          if(input$dataSelect != "gravity" && input$gravity == F){
             clust <- kmeans(df, cl)$cluster %>%
               as.factor()
           }# Compute fuzzy clustering with k = 2 # Compute fuzzy clustering with k = 2
           #change D2 w D3
-          if(input$gravity == T){clust <- kmeans(cc, cl)$cluster %>% as.factor() }
+          if(input$dataSelect == "gravity" || input$gravity == T){clust <- kmeans(cc, cl)$cluster %>% as.factor() }
           
           sp <-ggscatter(cc, x = "D1", y = "D2", 
                          label = names(df), size =max(res$spp)-res$spp,alpha=.3, legend="none",
@@ -1648,12 +1633,12 @@ server <- function(input, output,session) {
           
           set.seed(123466)
           library(cluster)
-          if(input$gravity == F){
+          if(input$dataSelect != "gravity" && input$gravity == F){
             clust <- kmeans(df, cl)$cluster %>%
               as.factor()
           }# Compute fuzzy clustering with k = 2 # Compute fuzzy clustering with k = 2
           #change D2 w D3
-          if(input$gravity == T){clust <- kmeans(cc, cl)$cluster %>% as.factor() }
+          if(input$dataSelect == "gravity" || input$gravity == T){clust <- kmeans(cc, cl)$cluster %>% as.factor() }
           
           sp <-ggscatter(cc, x = "D1", y = "D2", 
                          label = names(df), size =max(res$spp)-res$spp,alpha=.3, legend="none",
@@ -1792,12 +1777,12 @@ server <- function(input, output,session) {
           set.seed(123466)
           library(cluster)
           
-          if(input$gravity == F){
+          if(input$dataSelect != "gravity" && input$gravity == F){
             clust <- kmeans(df, cl)$cluster %>%
               as.factor()
           }# Compute fuzzy clustering with k = 2 # Compute fuzzy clustering with k = 2
           #change D2 w D3
-          if(input$gravity == T){clust <- kmeans(cc, cl)$cluster %>% as.factor() }
+          if(input$dataSelect == "gravity" || input$gravity == T){clust <- kmeans(cc, cl)$cluster %>% as.factor() }
           
           sp <-ggscatter(cc, x = "D1", y = "D2", 
                          label = names(df), size =max(res$spp)-res$spp,alpha=.3, legend="none",
@@ -1857,7 +1842,7 @@ server <- function(input, output,session) {
           
         }
         
-        }
+      }
       
       if(input$finalRandom == T){
         if(input$external == T)
@@ -1942,14 +1927,14 @@ server <- function(input, output,session) {
           
           set.seed(123466)
           library(cluster)
-         
-          if(input$gravity == F){
+          
+          if(input$dataSelect != "gravity" && input$gravity == F){
             clust <- kmeans(df, cl)$cluster %>%
               as.factor()
           }# Compute fuzzy clustering with k = 2 # Compute fuzzy clustering with k = 2
           #change D2 w D3
           
-          if(input$gravity == T){clust <- kmeans(cc, cl)$cluster %>% as.factor() }
+          if(input$dataSelect == "gravity" || input$gravity == T){clust <- kmeans(cc, cl)$cluster %>% as.factor() }
           sp <-ggscatter(cc, x = "D1", y = "D2", 
                          label = names(df), size =max(res$spp)-res$spp,alpha=.3, legend="none",
                          repel = TRUE)+ ggtitle(tit) 
@@ -2013,16 +1998,16 @@ server <- function(input, output,session) {
         
       }
       
-      }
+    }
     sss
     
-    })
+  })
   
   output$finalModel <- renderPlot({
     
     finalModelDraw()
-  
-    })
+    
+  })
   
   output$final3d <- renderPlotly({
     
