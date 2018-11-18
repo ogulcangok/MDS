@@ -5,9 +5,9 @@ account: ogulcangok
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 520940
-bundleId: 1678454
+bundleId: 1707625
 url: https://ogulcangok.shinyapps.io/mdsApp/
-when: 1541170737.75824
+when: 1542575135.64504
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: .RData
+ignoredFiles: .RData|Instructions.html|Instructions.md|welcome.html

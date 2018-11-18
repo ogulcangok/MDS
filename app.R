@@ -19,6 +19,7 @@ library(plotly)
 library("ggplotify")
 library(ggfortify)
 library(grid)
+library(rmarkdown)
 
 # Define UI for application that draws a histogram
 ui <- dashboardPagePlus(
@@ -40,7 +41,8 @@ ui <- dashboardPagePlus(
     tabItems(
       tabItem("welcome",
               box(width = "auto",
-              htmlOutput("welcomeOut"))),
+              includeMarkdown("welcome.rmd")
+              )),
       tabItem(tabName = "data",
               boxPlus(
                 tags$h4("Scree Plot"),
@@ -259,11 +261,7 @@ ui <- dashboardPagePlus(
 # Define server logic required to draw a histogram
 server <- function(input, output,session) {
   
-  output$welcomeOut <- renderPrint({
-    
-    includeHTML("Instructions.html")
-    
-  })
+  
   
   readData <- reactive({
     
